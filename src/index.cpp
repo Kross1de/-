@@ -89,31 +89,18 @@ void processInput(SDL_Window *window, bool &running)
     glm::vec3 newPos = cameraPos;
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_W])
-        newPos += cameraSpeed * glm::vec3(cameraFront.x, 0.0f, cameraFront.z);
+        newPos += cameraSpeed * cameraFront;
     if (state[SDL_SCANCODE_S])
-        newPos -= cameraSpeed * glm::vec3(cameraFront.x, 0.0f, cameraFront.z);
+        newPos -= cameraSpeed * cameraFront;
     if (state[SDL_SCANCODE_A])
         newPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (state[SDL_SCANCODE_D])
         newPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if (state[SDL_SCANCODE_SPACE] && !isJumping)
-    {
-        verticalVelocity = jumpStrength;
-        isJumping = true;
-    }
+    if (state[SDL_SCANCODE_SPACE])
+        newPos += cameraSpeed * cameraUp;
+    if (state[SDL_SCANCODE_LSHIFT])
+        newPos -= cameraSpeed * cameraUp;
 
-    verticalVelocity += gravity * deltaTime;
-    newPos.y += verticalVelocity * deltaTime;
-
-    if (newPos.y <= 1.0f)
-    {
-        newPos.y = 1.0f;
-        verticalVelocity = 0.0f;
-        isJumping = false;
-    }
-
-    newPos.x = glm::clamp(newPos.x, -10.0f, 10.0f);
-    newPos.z = glm::clamp(newPos.z, -10.0f, 10.0f);
     cameraPos = newPos;
 }
 
