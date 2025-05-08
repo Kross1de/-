@@ -5,7 +5,6 @@
 #include <vector>
 #include <iostream>
 
-// shaders
 const char *vertexShaderSrc = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
@@ -25,31 +24,19 @@ void main() {
 }
 )";
 
-std::vector<float> cubeVertices = {
-    -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-    -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-    -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-    -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-    0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f,
-    -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-    -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f,
-    -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f};
+std::vector<float> platformVertices = {
+    -10.0f, 0.0f, -10.0f, 10.0f, 0.0f, -10.0f, 10.0f, 0.0f, 10.0f,
+    -10.0f, 0.0f, -10.0f, 10.0f, 0.0f, 10.0f, -10.0f, 0.0f, 10.0f};
 
-std::vector<glm::vec3> cubePositions = {
-    glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(2.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(2.0f, 0.0f, 1.0f),
-    glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(1.0f, 0.0f, 2.0f), glm::vec3(2.0f, 0.0f, 2.0f)};
-
-glm::vec3 cameraPos = glm::vec3(0.0f, 1.0f, 3.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-float yaw = -90.0f, pitch = 0.0f;
-float lastX = 400, lastY = 300;
-bool firstMouse = true;
+float yaw = -90.0f;
+float pitch = 0.0f;
+float verticalVelocity = 0.0f;
+const float gravity = -9.8f;
+const float jumpStrength = 4.5f;
+bool isJumping = false;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -72,10 +59,12 @@ void processInput(SDL_Window *window, bool &running)
             yoffset *= sensitivity;
             yaw += xoffset;
             pitch += yoffset;
+
             if (pitch > 89.0f)
                 pitch = 89.0f;
             if (pitch < -89.0f)
                 pitch = -89.0f;
+
             glm::vec3 front;
             front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
             front.y = sin(glm::radians(pitch));
@@ -85,15 +74,35 @@ void processInput(SDL_Window *window, bool &running)
     }
 
     const float cameraSpeed = 2.5f * deltaTime;
+    glm::vec3 newPos = cameraPos;
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_W])
-        cameraPos += cameraSpeed * cameraFront;
+        newPos += cameraSpeed * glm::vec3(cameraFront.x, 0.0f, cameraFront.z);
     if (state[SDL_SCANCODE_S])
-        cameraPos -= cameraSpeed * cameraFront;
+        newPos -= cameraSpeed * glm::vec3(cameraFront.x, 0.0f, cameraFront.z);
     if (state[SDL_SCANCODE_A])
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        newPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (state[SDL_SCANCODE_D])
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        newPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (state[SDL_SCANCODE_SPACE] && !isJumping)
+    {
+        verticalVelocity = jumpStrength;
+        isJumping = true;
+    }
+
+    verticalVelocity += gravity * deltaTime;
+    newPos.y += verticalVelocity * deltaTime;
+
+    if (newPos.y <= 1.0f)
+    {
+        newPos.y = 1.0f;
+        verticalVelocity = 0.0f;
+        isJumping = false;
+    }
+
+    newPos.x = glm::clamp(newPos.x, -10.0f, 10.0f);
+    newPos.z = glm::clamp(newPos.z, -10.0f, 10.0f);
+    cameraPos = newPos;
 }
 
 GLuint compileShader(const char *source, GLenum type)
@@ -180,7 +189,7 @@ int main()
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, cubeVertices.size() * sizeof(float), cubeVertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, platformVertices.size() * sizeof(float), platformVertices.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -208,12 +217,9 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, &view[0][0]);
 
         glBindVertexArray(VAO);
-        for (const auto &pos : cubePositions)
-        {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
-            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &model[0][0]);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        glm::mat4 model = glm::mat4(1.0f);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &model[0][0]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
         SDL_GL_SwapWindow(window);
