@@ -31,6 +31,29 @@ const char *fragmentShaderSrc = R"(
     }
     )";
 
+const char *crosshairVertexShaderSrc = R"(
+    #version 330 core
+    layout (location = 0) in vec2 aPos;
+    void main() {
+        gl_Position = vec4(aPos, 0.0, 1.0);
+    }
+)";
+
+const char *crosshairFragmentShaderSrc = R"(
+    #version 330 core
+    out vec4 FragColor;
+    void main() {
+        FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+)";
+
+std::vector<float> crosshairVertices = {
+    -0.01f, 0.0f,   // left line
+    0.01f, 0.0f,
+    0.0f, -0.01f,   // top line
+    0.0f, 0.01f
+};
+
 std::vector<float> platformVertices = {
     -10.0f, 0.0f, -10.0f,  0.0f, 0.0f, 
     10.0f, 0.0f, -10.0f,  1.0f, 0.0f, 
@@ -180,7 +203,7 @@ int main()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_Window *window = SDL_CreateWindow("Сгусток", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL);
+    SDL_Window *window = SDL_CreateWindow("Kaboom Battle", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL);
     if (!window)
     {
         std::cerr << "Window creation failed: " << SDL_GetError() << std::endl;
@@ -226,6 +249,26 @@ int main()
     GLuint shaderProgram = createShaderProgram();
     GLuint grassTexture = loadTexture("src/textures/grass.png");
 
+    GLuint crosshairVAO, crosshairVBO;
+    glGenVertexArrays(1, &crosshairVAO);
+    glGenBuffers(1, &crosshairVBO);
+    glBindVertexArray(crosshairVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, crosshairVBO);
+    glBufferData(GL_ARRAY_BUFFER, crosshairVertices.size() * sizeof(float), crosshairVertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    GLuint crosshairShaderProgram = glCreateProgram();
+    GLuint crosshairVertexShader = compileShader(crosshairVertexShaderSrc, GL_VERTEX_SHADER);
+    GLuint crosshairFragmentShader = compileShader(crosshairFragmentShaderSrc, GL_FRAGMENT_SHADER);
+    glAttachShader(crosshairShaderProgram, crosshairVertexShader);
+    glAttachShader(crosshairShaderProgram, crosshairFragmentShader);
+    glLinkProgram(crosshairShaderProgram);
+    glDeleteShader(crosshairVertexShader);
+    glDeleteShader(crosshairFragmentShader);
+
     bool running = true;
     while (running)
     {
@@ -255,6 +298,13 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
+        glDisable(GL_DEPTH_TEST);
+        glUseProgram(crosshairShaderProgram);
+        glBindVertexArray(crosshairVAO);
+        glDrawArrays(GL_LINES, 0, 4);
+        glBindVertexArray(0);
+        glEnable(GL_DEPTH_TEST);
+
         SDL_GL_SwapWindow(window);
     }
 
@@ -262,6 +312,9 @@ int main()
     glDeleteBuffers(1, &VBO);
     glDeleteTextures(1, &grassTexture);
     glDeleteProgram(shaderProgram);
+    glDeleteVertexArrays(1, &crosshairVAO);
+    glDeleteBuffers(1, &crosshairVBO);
+    glDeleteProgram(crosshairShaderProgram);
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(window);
     SDL_Quit();

@@ -2,7 +2,7 @@ CXX =g++
 CXXF=-Wall -std=c++11 -O2
 LDF = -lSDL2 -lGLEW -lGL
 
-TARGET=sgustok
+TARGET=KBM
 
 SOURCES=src/index.cpp \
 
