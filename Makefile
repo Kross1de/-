@@ -1,12 +1,16 @@
-CXX =g++
-CXXF=-Wall -std=c++11 -O2
+CXX = g++
+CXXF = -Wall -std=c++11 -O2
 LDF = -lSDL2 -lGLEW -lGL
 
-TARGET=KBM
+TARGET = KBM
 
-SOURCES=src/index.cpp \
+SOURCES = src/main.cpp \
+          src/shader.cpp \
+          src/camera.cpp \
+          src/cursor.cpp \
+          src/texture.cpp
 
-OBJECTS=$(SOURCES:.cpp=.o)
+OBJECTS = $(SOURCES:.cpp=.o)
 
 all: $(TARGET)
 
