@@ -58,14 +58,43 @@ std::vector<float> crosshairVertices = {
     0.0f, 0.01f
 };
 
-// Platform vertices
 const std::vector<float> platformVertices = {
-    -10.0f, 0.0f, -10.0f,  0.0f, 0.0f, 
-    10.0f, 0.0f, -10.0f,  1.0f, 0.0f, 
-    10.0f, 0.0f,  10.0f,  1.0f, 1.0f, 
-    -10.0f, 0.0f, -10.0f,  0.0f, 0.0f, 
-    10.0f, 0.0f,  10.0f,  1.0f, 1.0f,
-    -10.0f, 0.0f,  10.0f,  0.0f, 1.0f 
+    -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f,  1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+     1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+    -1.0f,  1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
+     1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
+    -1.0f,  1.0f, -1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
+    -1.0f,  1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f,  1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+     1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+    -1.0f,  1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f,  1.0f, -1.0f,  0.0f, 0.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f, -1.0f,  1.0f,  1.0f, 1.0f,
+     1.0f, -1.0f,  1.0f,  1.0f, 1.0f,
+    -1.0f, -1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f,  1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+     1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+     1.0f, -1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
+    -1.0f,  1.0f, -1.0f,  1.0f, 0.0f,
+    -1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+    -1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+    -1.0f, -1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f
 };
 
 int main()
@@ -145,7 +174,7 @@ int main()
 
         camera.processInput(window, running, deltaTime);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.529f, 0.808f, 0.922f, 1.0f); // Sky blue color
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render platform
@@ -164,7 +193,7 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         glUniformMatrix4fv(glGetUniformLocation(mainShader.getProgram(), "model"), 
                           1, GL_FALSE, &model[0][0]);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
 
         // Render cursor
